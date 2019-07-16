@@ -14,7 +14,6 @@ class NL_Cheats {
         const val titlePath = "Cheats_Application\\nl_cheats\\menu\\"
         const val descriptionPath = "Cheats_Application\\nl_cheats\\txt\\"
 
-
         const val TABLE_NAME = "Cheats"
         const val COLUMN_NAME_ID = "Id"
         const val COLUMN_NAME_TITLE = "Title"
@@ -75,6 +74,11 @@ class NL_Cheats {
 
         val time = measureTimeMillis {
             saveListOfCheats(cheats.basePath + cheats.titlePath + "c1.txt")
+            /*saveListOfCheats(cheats.basePath + cheats.titlePath + "c2.txt")
+            saveListOfCheats(cheats.basePath + cheats.titlePath + "c3.txt")
+            saveListOfCheats(cheats.basePath + cheats.titlePath + "c4.txt")*/
+            saveListOfCheats(cheats.basePath + cheats.titlePath + "c5.txt")
+            saveListOfCheats(cheats.basePath + cheats.titlePath + "c6.txt")
         }
         print("Затраченное время $time ms")
     }
@@ -139,7 +143,14 @@ class NL_Cheats {
         }
         return updatedListOfPairs
     }
-    fun saveUpdatedDataIntoDatabase(updatedListOfPairs: ArrayList<Pair<String, String>>) {
+    fun convertListOfPairsIntoListOfCheats(updatedListOfPairs: ArrayList<Pair<String, String>>) {
+        val listOfCheats = ArrayList<Cheat>()
+
+        updatedListOfPairs.forEach {
+
+        }
+    }
+    /*fun saveUpdatedDataIntoDatabase(updatedListOfPairs: ArrayList<Pair<String, String>>) {
         println("saveUpdatedDataIntoDatabase()")
 
         var conn: Connection? = null
@@ -180,5 +191,5 @@ class NL_Cheats {
             }
             catch (e: SQLException) { e.printStackTrace() }
         }
-    }
+    }*/
 }

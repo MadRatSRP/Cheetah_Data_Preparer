@@ -33,6 +33,8 @@ dependencies {
     
     // SQLite
     implementation "org.xerial:sqlite-jdbc:3.28.0"
+    // Moshi
+    implementation("com.squareup.moshi:moshi:1.8.0")
 }
 
 compileKotlin {
