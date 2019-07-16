@@ -1,89 +1,95 @@
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
-import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.SchemaUtils.create
-import org.jetbrains.exposed.sql.SchemaUtils.drop
-import org.jetbrains.exposed.sql.transactions.transaction
-
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStreamReader
+import java.sql.*
 import java.util.stream.Collectors
+import kotlin.system.exitProcess
 import kotlin.system.measureTimeMillis
 
 class NL_Cheats {
-    fun workingWithFAQs() {
-        val listOfFAQs = readFileOfFAQs()
-        
+    object cheats {
+        const val basePath = "F:\\MobileContent\\J2ME_Cheats\\"
+        const val dbPath = "J2ME_Cheetah\\app\\src\\main\\assets\\databases\\Cheats.db"
+        const val titlePath = "Cheats_Application\\nl_cheats\\menu\\"
+        const val descriptionPath = "Cheats_Application\\nl_cheats\\txt\\"
+
+
+        const val TABLE_NAME = "Cheats"
+        const val COLUMN_NAME_ID = "Id"
+        const val COLUMN_NAME_TITLE = "Title"
+        const val COLUMN_NAME_DESCRIPTION = "Description"
+
+        const val SQL_CREATE_CHEATS =
+            "CREATE TABLE $TABLE_NAME (" +
+                    "$COLUMN_NAME_ID INTEGER PRIMARY KEY AUTOINCREMENT," +
+                    "$COLUMN_NAME_TITLE TEXT," +
+                    "$COLUMN_NAME_DESCRIPTION TEXT)"
+        const val SQL_DELETE_CHEATS =
+            "DROP TABLE IF EXISTS $TABLE_NAME"
+        const val SQL_SELECT_ALL =
+            "SELECT * FROM $TABLE_NAME"
+
+        fun returnInsertQueryWithParameters(title: String, description: String)
+                : String =
+            "INSERT INTO $TABLE_NAME " +
+                "($COLUMN_NAME_TITLE, $COLUMN_NAME_DESCRIPTION) " +
+                "VALUES ('$title', '$description')"
     }
 
+    fun dropAndCreateNewCheatsDatabase() {
+        println("dropAndCreateNewCheatsDatabase()")
+
+        var conn: Connection? = null
+        var stmt: Statement? = null
+        try {
+            Class.forName("org.sqlite.JDBC")
+            conn = DriverManager.getConnection("jdbc:sqlite:${cheats.basePath}${cheats.dbPath}")
+
+            println("Database was opened")
+
+            stmt = conn.createStatement()
+
+            stmt.execute(cheats.SQL_DELETE_CHEATS)
+            stmt.execute(cheats.SQL_CREATE_CHEATS)
+        }
+        catch (ex: ClassNotFoundException) {
+            ex.printStackTrace()
+        }
+        catch (ex: SQLException) {
+            ex.printStackTrace()
+        }
+        finally {
+            try {
+                stmt?.close()
+                conn?.close()
+                println("Table Cheats dropped and re-created successfully")
+            }
+            catch (e: SQLException) { e.printStackTrace() }
+        }
+    }
+    fun callNewFunction() {
+        println("callNewFunction()")
+        // Дропаем и создаем новую таблицу
+        dropAndCreateNewCheatsDatabase()
+
+        val time = measureTimeMillis {
+            saveListOfCheats(cheats.basePath + cheats.titlePath + "c1.txt")
+        }
+        print("Затраченное время $time ms")
+    }
     fun saveListOfCheats(path: String) {
+        println("saveListOfCheats()")
         val pathToFolder = File(path)
 
         val listOfPairs = readFileAndFormListOfPairs(pathToFolder)
         val updatedListOfPairs = getUpdatedListOfPairsByDescriptionPath(listOfPairs)
         saveUpdatedDataIntoDatabase(updatedListOfPairs)
     }
-
-    fun formListOfPairs(path: String): Job = GlobalScope.launch{
-        dropAndCreateNewCheatsDatabase()
-
-        val formFirstListOfPairs = async {
-            saveListOfCheats(path + "c1.txt")
-        }
-        val formSecondListOfPairs = async {
-            saveListOfCheats(path + "c2.txt")
-        }
-        val formThirdListOfPairs = async {
-            saveListOfCheats(path + "c3.txt")
-        }
-        val formFourthListOfPairs = async {
-            saveListOfCheats(path + "c4.txt")
-        }
-        val formFifthListOfPairs = async {
-            saveListOfCheats(path + "c5.txt")
-        }
-        val formSixthListOfPairs = async {
-            saveListOfCheats(path + "c6.txt")
-        }
-        val time = measureTimeMillis {
-            formFirstListOfPairs.await()
-            formSecondListOfPairs.await()
-            formThirdListOfPairs.await()
-            formFourthListOfPairs.await()
-            formFifthListOfPairs.await()
-            formSixthListOfPairs.await()
-        }
-        print("Затраченное время $time ms")
-    }
-
-    fun dropAndCreateNewCheatsDatabase() {
-        Database.connect("jdbc:h2:file:C:\\CurrentProjects\\Databases\\NL_Cheats", driver = "org.h2.Driver")
-
-        transaction {
-            drop(Cheats)
-            create(Cheats)
-        }
-    }
-
-    fun readFileOfFAQs(): List<String> {
-        val filePath = "C:\\Java and etc\\Cheats_Application\\nl_cheats\\txt\\tips\\3.txt"
-        val locatedFile = File(filePath)
-
-        val bufferedReader = BufferedReader(
-            InputStreamReader(
-                FileInputStream(locatedFile),"UTF8")
-        )
-
-        //print(listOfFAQs.size)
-        return bufferedReader.readLines()
-    }
-
     fun readFileAndFormListOfPairs(file: File)
             : ArrayList<Pair<String, String>> {
+        println("readFileAndFormListOfPairs()")
+
         val bufferedReader = BufferedReader(
             InputStreamReader(
                 FileInputStream(file),"UTF8")
@@ -114,12 +120,12 @@ class NL_Cheats {
     }
     fun getUpdatedListOfPairsByDescriptionPath(listOfPairs: ArrayList<Pair<String, String>>)
             : ArrayList<Pair<String, String>> {
+        println("getUpdatedListOfPairsByDescriptionPath()")
+
         val updatedListOfPairs = ArrayList<Pair<String, String>>()
 
-        val path = "C:\\Java and etc\\Cheats_Application\\nl_cheats\\txt\\"
-
         listOfPairs.forEach {
-            val completePath = path + it.second
+            val completePath = cheats.basePath + cheats.descriptionPath + it.second
 
             val bufferedReader = BufferedReader(
                 InputStreamReader(
@@ -133,36 +139,46 @@ class NL_Cheats {
         }
         return updatedListOfPairs
     }
-
     fun saveUpdatedDataIntoDatabase(updatedListOfPairs: ArrayList<Pair<String, String>>) {
-        Database.connect("jdbc:h2:file:C:\\CurrentProjects\\Databases\\NL_Cheats", driver = "org.h2.Driver")
+        println("saveUpdatedDataIntoDatabase()")
 
-        /*transaction {
-            //drop(Cheats)
-        }*/
+        var conn: Connection? = null
+        var stmt: Statement? = null
+        try {
+            Class.forName("org.sqlite.JDBC")
+            conn = DriverManager.getConnection("jdbc:sqlite:${cheats.basePath}${cheats.dbPath}")
 
-        updatedListOfPairs.forEach {pair ->
-            val cheatTitle = pair.first
-            val cheatDescription = pair.second
+            println("Database was opened")
 
-            transaction {
-                Cheats.insert {
-                    it[title] = cheatTitle
-                    it[description] = cheatDescription
-                }
+            stmt = conn.createStatement()
+
+            updatedListOfPairs.forEach {pair ->
+                val title = pair.first
+                val description = pair.second
+
+                val insertQuery = cheats.returnInsertQueryWithParameters(title, description)
+                stmt.execute(insertQuery)
+            }
+
+            val rs: ResultSet = stmt.executeQuery(cheats.SQL_SELECT_ALL)
+            while (rs.next()) {
+                print("\n" + rs.getString(cheats.COLUMN_NAME_TITLE))
+                print("\n" + rs.getString(cheats.COLUMN_NAME_DESCRIPTION))
             }
         }
-
-        transaction {
-            for (cheat in Cheats.selectAll()) {
-                println("${cheat[Cheats.id]}: ${cheat[Cheats.title]}: \n${cheat[Cheats.description]}")
-            }
+        catch (ex: ClassNotFoundException) {
+            ex.printStackTrace()
         }
-    }
-
-    object Cheats: Table() {
-        val id = integer("id").autoIncrement().primaryKey()
-        val title = varchar("title", length = 50)
-        val description = varchar("description", length = 1500)
+        catch (ex: SQLException) {
+            ex.printStackTrace()
+        }
+        finally {
+            try {
+                stmt?.close()
+                conn?.close()
+                println("\nTable Cheats successfully updated")
+            }
+            catch (e: SQLException) { e.printStackTrace() }
+        }
     }
 }

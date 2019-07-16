@@ -1,21 +1,28 @@
-import kotlinx.coroutines.*
 import java.io.BufferedReader
 import java.io.FileInputStream
 import java.io.InputStreamReader
 import java.util.*
-import kotlin.system.measureTimeMillis
+import java.sql.Connection
+import java.sql.DriverManager
+import java.sql.ResultSet
+import java.sql.Statement
+import kotlin.system.exitProcess
+
 
 suspend fun main() {
     processingOfNLCheats()
+
+    //createDatabase()
 }
 suspend fun processingOfNLCheats() {
-    val path = "C:\\Java and etc\\Cheats_Application\\nl_cheats\\menu\\"
-
-    val nlCheats = NL_Cheats()
+    /*val nlCheats = NL_Cheats()
 
     nlCheats.formListOfPairs(path).join()//.cancelAndJoin()
 
-    nlCheats.workingWithFAQs()
+    nlCheats.workingWithFAQs()*/
+
+    val nlCheats = NL_Cheats()
+    nlCheats.callNewFunction()
 }
 
 
