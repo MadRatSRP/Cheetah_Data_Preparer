@@ -1,3 +1,4 @@
+import kotlinx.coroutines.runBlocking
 import java.io.BufferedReader
 import java.io.FileInputStream
 import java.io.InputStreamReader
@@ -22,7 +23,12 @@ suspend fun processingOfNLCheats() {
     nlCheats.workingWithFAQs()*/
 
     val nlCheats = NL_Cheats()
-    nlCheats.callNewFunction()
+    nlCheats.callNewFunction().join()
+
+    /*runBlocking {
+        val nlCheats = NL_Cheats()
+        nlCheats.callNewFunction()
+    }*/
 }
 
 
