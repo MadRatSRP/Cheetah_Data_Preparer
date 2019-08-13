@@ -1,34 +1,15 @@
-import kotlinx.coroutines.runBlocking
 import java.io.BufferedReader
 import java.io.FileInputStream
 import java.io.InputStreamReader
 import java.util.*
-import java.sql.Connection
-import java.sql.DriverManager
-import java.sql.ResultSet
-import java.sql.Statement
-import kotlin.system.exitProcess
 
 
 suspend fun main() {
-    processingOfNLCheats()
-
-    //createDatabase()
+    processNLCheatFiles()
 }
-suspend fun processingOfNLCheats() {
-    /*val nlCheats = NL_Cheats()
-
-    nlCheats.formListOfPairs(path).join()//.cancelAndJoin()
-
-    nlCheats.workingWithFAQs()*/
-
-    val nlCheats = NL_Cheats()
+suspend fun processNLCheatFiles() {
+    val nlCheats = NLCheats()
     nlCheats.callNewFunction().join()
-
-    /*runBlocking {
-        val nlCheats = NL_Cheats()
-        nlCheats.callNewFunction()
-    }*/
 }
 
 

@@ -18,7 +18,7 @@ import java.util.stream.Collectors
 import kotlin.system.exitProcess
 import kotlin.system.measureTimeMillis
 
-class NL_Cheats {
+class NLCheats {
     object Cheats/*: BaseColumns()*/ {
         /*val id = integer("id").autoIncrement().primaryKey()
         val title = varchar("title", length = 50)
@@ -272,7 +272,7 @@ class NL_Cheats {
         try {
             Class.forName("org.sqlite.JDBC")
 
-            c = DriverManager.getConnection("jdbc:sqlite:C:\\CurrentProjects\\J2ME_Cheetah\\app\\src\\main\\assets\\databases\\NL_Cheats.db")
+            c = DriverManager.getConnection("jdbc:sqlite:C:\\CurrentProjects\\J2ME_Cheetah\\app\\src\\main\\assets\\databases\\NLCheats.db")
 
             //println("Database Opened...\n")
 
