@@ -5,11 +5,12 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import java.io.*
+import java.sql.Connection
+import java.sql.DriverManager
+import java.sql.ResultSet
+import java.sql.SQLException
 import java.util.stream.Collectors
 import kotlin.system.measureTimeMillis
-import java.sql.SQLException
-import java.sql.DriverManager
-import java.sql.Connection
 
 
 class NLCheats {
@@ -17,7 +18,7 @@ class NLCheats {
         const val encodingCP1251 = "windows-1251"
 
         const val nameOfFileWithCheatTitles = "c%d.mnu"
-        const val nameOfFileWithCheatJson = "NLCheats_Cheat#%d.json"
+        const val nameOfFileWithCheatJson = "nl_cheats_#%d.json"
         const val nameOfFileWithFAQTitles = "fq.mnu"
         const val nameOfFileWithFAQJson = "NLCheats_FAQ.json"
 
@@ -37,7 +38,7 @@ class NLCheats {
             saveFileWithCheatsAsJson(pathToFileWithCheatTitles.format(1),
                 pathToFileWithCheatJson.format(1))
         }
-        val formAndSaveSecondFileWithCheats = async {
+        /*val formAndSaveSecondFileWithCheats = async {
             saveFileWithCheatsAsJson(pathToFileWithCheatTitles.format(2),
                 pathToFileWithCheatJson.format(2))
         }
@@ -59,9 +60,14 @@ class NLCheats {
         }
         val formAndSaveFileWithFAQs = async {
             saveFileWithFAQsAsJson(pathToFileWithFAQTitles)
-        }
+        }*/
         val time = measureTimeMillis {
+            createNewDatabase("kaka")
+            createNewTable("kaka")
+
             formAndSaveFirstFileWithCheats.await()
+
+
             /*formAndSaveSecondFileWithCheats.await()
             formAndSaveThirdFileWithCheats.await()
             formAndSaveFourthFileWithCheats.await()
@@ -78,19 +84,18 @@ class NLCheats {
 
         val updatedListOfPairs = getUpdatedListOfPairsByDescriptionPath(arrayListOfPairs)
         val listOfCheats = convertListOfPairsIntoListOfCheats(updatedListOfPairs)
-        /*val listOfJsons = getListOfJsons(listOfCheats)
-        putListOfJsonsIntoLocalFile(pathToJSON, listOfJsons)*/
-        createNewDatabase("kaka")
-        connect("kaka")
-        createNewTable("kaka")
 
         insert(listOfCheats)
+        println(query()?.fetchSize)
+
+        /*val listOfJsons = getListOfJsons(listOfCheats)
+        putListOfJsonsIntoLocalFile(pathToJSON, listOfJsons)*/
     }
     private fun saveFileWithFAQsAsJson(pathToTitle: String/*, pathToJSON: String*/) {
         val arrayListOfStrings = readFileAndFormArrayListOfStrings(pathToTitle)
         val arrayListOfPairs = convertArrayListOfStringsIntoArrayListOfPairs(arrayListOfStrings)
         val updatedListOfPairs = getUpdatedListOfPairsByDescriptionPath(arrayListOfPairs)
-        print("${updatedListOfPairs.size}")
+        //print("${updatedListOfPairs.size}")
     }
     private fun readFileAndFormArrayListOfStrings(pathToTitle: String): ArrayList<String> {
         val file = File(pathToTitle)
@@ -134,7 +139,6 @@ class NLCheats {
         val pathToFileWithDescription = NL_Cheats.basePath + NL_Cheats.pathToDescription + "%s"
 
         listOfPairs.forEach {
-            print("AAA"+ it.second+"\n")
             val file = File(pathToFileWithDescription.format(it.second))
 
             val bufferedReader = returnBufferedReader(NL_Cheats.encodingCP1251, file)
@@ -193,14 +197,14 @@ class NLCheats {
                     println("The driver name is " + meta.driverName)
                     println("A new database has been created.")
                 }
-
+                conn.close()
             }
         } catch (e: SQLException) {
             println(e.message)
         }
     }
 
-    fun connect(dbName: String) {
+    /*fun connect(dbName: String) {
         Class.forName("org.sqlite.JDBC")
         var conn: Connection? = null
         try {
@@ -215,14 +219,12 @@ class NLCheats {
             println(e.message)
         } finally {
             try {
-                if (conn != null) {
-                    conn.close()
-                }
+                conn?.close()
             } catch (ex: SQLException) {
                 println(ex.message)
             }
         }
-    }
+    }*/
     fun createNewTable(dbName: String) {
         // SQLite connection string
         Class.forName("org.sqlite.JDBC")
@@ -235,10 +237,11 @@ class NLCheats {
                 + ");")
         try {
             DriverManager.getConnection(url).use { conn ->
-                conn.createStatement().use { stmt ->
+                conn.createStatement().use { statement ->
                     // create a new table
-                    stmt.execute(sql)
+                    statement.execute(sql)
                 }
+                conn.close()
             }
         } catch (e: SQLException) {
             println(e.message)
@@ -260,7 +263,6 @@ class NLCheats {
 
     fun insert(listOfEntity: ArrayList<Entity>) {
         val sql = "INSERT INTO nlCheats(title,description) VALUES(?,?)"
-
         try {
             this.connect()?.use { conn ->
                 listOfEntity.forEach {entity->
@@ -268,13 +270,42 @@ class NLCheats {
                         preparedStatement.setString(1, entity.title)
                         preparedStatement.setString(2, entity.description)
                         preparedStatement.executeUpdate()
+
                     }
                 }
+                println("\nNew data was inserted into database")
+                conn.close()
             }
         } catch (e: SQLException) {
             println(e.message)
         }
+    }
 
+    fun query(): ResultSet? {
+        var resultSet: ResultSet? = null
+        val sql = "SELECT * from nlCheats" //INTO nlCheats(title,description) VALUES(?,?)"
+        resultSet = try {
+            this.connect()?.use { conn ->
+                /*listOfEntity.forEach {entity->
+                    conn.prepareStatement(sql).use { preparedStatement ->
+                        preparedStatement.setString(1, entity.title)
+                        preparedStatement.setString(2, entity.description)
+                        preparedStatement.executeUpdate()
+
+                    }
+                }
+                println("\nNew data was inserted into database")
+                conn.close()*/
+
+                conn.prepareStatement(sql).use { preparedStatement ->
+                    /*resultSet =  */preparedStatement.executeQuery()
+                }
+            }
+        } catch (e: SQLException) {
+            println(e.message)
+            null
+        }
+        return resultSet
     }
 
     private fun returnBufferedReader(charsetName: String, file: File): BufferedReader {
